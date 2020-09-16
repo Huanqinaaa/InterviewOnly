@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="appModule">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
+</head>
+<body>
+<div class="nav navbar-inverse">
+    <div class="container-fluid">
+        <div>
+            <!-- <ul class="nav navbar-nav"> -->
+                <!-- <li><a href="#!/">Homepage</a></li> -->
+                <!-- <li><a href="#!/stock/list">Sporting Goods</a></li> -->
+                <!-- <li><a href="#!/stock/add">Add Item</a></li> -->
+                <!-- <li><a href="#!/stock/detail">Detail</a></li> -->
+            <!-- </ul> -->
+        </div>
+    </div>
+</div>
+<div ng-view class="container"></div>
+<script src="node_modules/angular/angular.js"></script>
+<script src="node_modules/angular-resource/angular-resource.js"></script>
+<script src="node_modules/angular-route/angular-route.js"></script>
+
+<script>
+    var app = angular.module('appModule',['ngResource','ngRoute']);
+    app.factory("stock",function ($resource) {  // 创建服务
+        return $resource('/stock/:id',null,{})
+    });
+    app.config(function ($routeProvider){// 配置各个路径中的文件
+        $routeProvider.when('/',{
+            templateUrl:'tmpl/list.html',
+            controller:'listCtrl'
+        }).when('/stock/add',{
+            templateUrl:'tmpl/add.html',
+            controller:'addCtrl'
+        }).when('/stock/list',{
+            templateUrl:'tmpl/list.html',
+            controller:'listCtrl'
+        }).when('/stock/detail/:nid',{
+            templateUrl:'tmpl/detail.html',
+            controller:'detailCtrl'
+        }).otherwise('/stock/list');
+    });
+    app.controller('indexCtrl',function ($scope){
+        $scope.logo = 'This is an stock List';
+    });
+    app.controller('listCtrl',function ($scope,stock,$location){
+        $scope.stocks = stock.query();
+        $scope.goDetail = function (id){
+            $location.path('/stock/detail/'+ id);
+        }
+    });
+    app.controller('addCtrl',function ($scope,stock,$location){
+        $scope.stock = {};
+        $scope.submit = function(){
+            stock.save($scope.stock).$promise.then(function (){
+                $location.path('/stock/list');
+            })
+        };
+    });
+    app.controller('detailCtrl',function ($scope,stock,$location,$routeParams){
+        $scope.stock = {};
+        var stockId = $routeParams.nid;
+        $scope.stock = stock.get({id:stockId});
+        $scope.contentAlert = function (content) {
+            alert(content);
+        };
+    });
+</script>
+</body>
+</html>
